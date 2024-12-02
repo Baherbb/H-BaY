@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Search, ShoppingCart, Heart, User } from 'lucide-react';
 import AnimatedLogo from './AnimatedLogo';
 import Cart from './Cart';
 import WishList from './WishList';
+import { SearchAutocomplete } from '../Search';
+import { useProductSearch } from '../../hooks/useProductSearch';
 
 interface NavItem {
   label: string;
@@ -19,33 +21,34 @@ const navItems: NavItem[] = [
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isWishListOpen, setIsWishListOpen] = useState(false);
   const location = useLocation();
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Searching for:', searchQuery);
-  };
+  const navigate = useNavigate();
+  const { loading, error } = useProductSearch();
 
   const isActiveLink = (href: string) => {
     return location.pathname === href;
   };
 
-  // Handle cart toggling
+  const handleSearch = (query: string) => {
+    if (query.trim()) {
+      navigate(`/search?q=${encodeURIComponent(query)}`);
+      setIsOpen(false); // Close mobile menu if open
+    }
+  };
+
   const handleCartClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsCartOpen(!isCartOpen);
     setIsWishListOpen(false);
     setIsOpen(false);
   };
-
+  
   const closeCart = () => {
     setIsCartOpen(false);
   };
 
-  // Handle wishlist toggling
   const handleWishListClick = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsWishListOpen(!isWishListOpen);
@@ -64,7 +67,7 @@ const Header = () => {
       <nav className="fixed top-0 w-full bg-white shadow-lg z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-32">
-            {/* Logo - Increased size */}
+            {/* Logo */}
             <Link to="home" className="flex-shrink-0 transition-transform duration-200 hover:scale-105">
               <AnimatedLogo />
             </Link>
@@ -88,18 +91,16 @@ const Header = () => {
 
             {/* Search Bar */}
             <div className="hidden md:flex flex-1 max-w-md mx-8">
-              <form onSubmit={handleSearch} className="w-full">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-colors duration-200"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+              <SearchAutocomplete
+                onSearch={handleSearch}
+                placeholder="Search products..."
+                className={error ? 'border-red-500' : ''}
+              />
+              {error && (
+                <div className="absolute top-full left-0 mt-1 text-sm text-red-500">
+                  {error}
                 </div>
-              </form>
+              )}
             </div>
 
             {/* Right Side Icons */}
@@ -107,6 +108,7 @@ const Header = () => {
               <button
                 onClick={handleWishListClick}
                 className="relative group"
+                aria-label="Wishlist"
               >
                 <Heart className={`h-6 w-6 transition-colors duration-200 ${
                   isWishListOpen ? 'text-orange-500' : 'text-gray-700 group-hover:text-orange-500'
@@ -119,6 +121,7 @@ const Header = () => {
               <button
                 onClick={handleCartClick}
                 className="relative group"
+                aria-label="Shopping Cart"
               >
                 <ShoppingCart className={`h-6 w-6 transition-colors duration-200 ${
                   isCartOpen ? 'text-orange-500' : 'text-gray-700 group-hover:text-orange-500'
@@ -142,6 +145,7 @@ const Header = () => {
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-orange-500 focus:outline-none"
+                aria-label="Toggle menu"
               >
                 {isOpen ? (
                   <X className="h-6 w-6" />
@@ -160,20 +164,17 @@ const Header = () => {
           } overflow-hidden bg-white shadow-lg`}
         >
           <div className="px-4 py-4 space-y-4">
-            {/* Mobile Search */}
             <div className="pb-3">
-              <form onSubmit={handleSearch} className="w-full">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <input
-                    type="text"
-                    placeholder="Search products..."
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border-2 border-gray-200 focus:border-orange-500 focus:outline-none"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+              <SearchAutocomplete
+                onSearch={handleSearch}
+                placeholder="Search products..."
+                className={error ? 'border-red-500' : ''}
+              />
+              {error && (
+                <div className="mt-1 text-sm text-red-500">
+                  {error}
                 </div>
-              </form>
+              )}
             </div>
 
             {/* Mobile Navigation */}
@@ -237,7 +238,11 @@ const Header = () => {
       {/* Cart Overlay */}
       {isCartOpen && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={closeCart} />
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50" 
+            onClick={closeCart}
+            aria-label="Close cart overlay"
+          />
           <div className="absolute right-0 top-0 h-full w-full max-w-md">
             <Cart onClose={closeCart} />
           </div>
@@ -247,7 +252,11 @@ const Header = () => {
       {/* WishList Overlay */}
       {isWishListOpen && (
         <div className="fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-black bg-opacity-50" onClick={closeWishList} />
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50" 
+            onClick={closeWishList}
+            aria-label="Close wishlist overlay"
+          />
           <div className="absolute right-0 top-0 h-full w-full max-w-md">
             <WishList onClose={closeWishList} />
           </div>

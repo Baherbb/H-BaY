@@ -1,30 +1,73 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
-
+import { useAuth } from '../contexts/AuthContext';
+import { ApiResponse } from '../types/auth';
 interface FormData {
   email: string;
   password: string;
 }
 
 const SignIn: React.FC = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
   });
+  
+  
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+  const { login } = useAuth();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
+  const handleEmailLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
-    console.log('Form Data:', formData);
+    setIsLoading(true);
+    setError('');
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', 
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+  
+      const data: ApiResponse = await response.json();
+  
+      if (data.data?.token && data.data?.user) {
+        login(data.data.token, data.data.user, data.data.permissions || []);
+        navigate('/home');
+      }
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred during login');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  const handleSocialLogin = (provider: 'google' | 'facebook') => {
+    window.location.href = `${API_BASE_URL}/api/auth/${provider}`;
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-500 to-orange-700 p-4">
       <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full mx-auto space-y-6">
@@ -40,6 +83,7 @@ const SignIn: React.FC = () => {
         <div className="space-y-4">
           <button 
             type="button"
+            onClick={() => handleSocialLogin('google')}
             className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-orange-500 hover:shadow-md transition-all duration-300 group"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -51,6 +95,7 @@ const SignIn: React.FC = () => {
             <span className="text-gray-600 group-hover:text-gray-900">Continue with Google</span>
           </button>
           <button 
+          onClick={() => handleSocialLogin('facebook')}
             type="button"
             className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-orange-500 hover:shadow-md transition-all duration-300 group"
           >
@@ -73,10 +118,8 @@ const SignIn: React.FC = () => {
             <span className="px-2 bg-white text-gray-500">Or sign in with email</span>
           </div>
         </div>
-
         {/* Form Section */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email Input */}
+          <form onSubmit={handleEmailLogin} className="space-y-5">
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700 block">Email Address</label>
             <input
@@ -87,14 +130,18 @@ const SignIn: React.FC = () => {
               className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
               placeholder="you@example.com"
               required
+              disabled={isLoading}
             />
           </div>
 
-          {/* Password Input */}
           <div className="space-y-2">
             <div className="flex justify-between">
               <label className="text-sm font-medium text-gray-700">Password</label>
-              <Link to="/forgot-password" className="text-sm text-orange-600 hover:text-orange-700">
+              <Link 
+                to="/forgot-password" 
+                className="text-sm text-orange-600 hover:text-orange-700"
+                tabIndex={isLoading ? -1 : 0}
+              >
                 Forgot password?
               </Link>
             </div>
@@ -106,23 +153,25 @@ const SignIn: React.FC = () => {
                 onChange={handleInputChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 required
+                disabled={isLoading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+                disabled={isLoading}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
 
