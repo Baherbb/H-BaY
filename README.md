@@ -12,8 +12,7 @@ Welcome to **H-BaY**, your go-to place for electronics! From phones and laptops 
 2. [Installation](#installation)
     1. [Backend Setup](#backend-setup)
     2. [Frontend Setup](#frontend-setup)
-3. [Tailwind CSS Setup](#tailwind-css-setup)
-4. [Running the Project](#running-the-project)
+3. [Running the Project](#running-the-project)
 
  
 
@@ -31,7 +30,7 @@ Before setting up the project, ensure that you have the following installed on y
 
    
 # Installation
-## Backend
+## Backend Setup
 
 ### Install Node.js and npm
 
@@ -62,8 +61,9 @@ npm install react react-dom
 ```
 
 
+# Running the Project
 
-# Follow these steps to start and set up the project on your local machine.
+## Follow these steps to start and set up the project on your local machine.
 
  
 
