@@ -42,9 +42,9 @@ Follow the installation guide for your operating system on the [official Postgre
 
 ### Installation
 
-## Tailwind CSS Installation
-# `npm install -D tailwindcss`
-# `npx tailwindcss init`
+# Tailwind CSS Installation
+ `npm install -D tailwindcss`
+ `npx tailwindcss init`
 
 
 Follow these steps to install and set up the project on your local machine.
