@@ -12,11 +12,10 @@ Welcome to the ultimate online marketplace where shopping meets convenience! Thi
 2. [Installation](#installation)
     1. [Backend Setup](#backend-setup)
     2. [Frontend Setup](#frontend-setup)
-3. [Running the Project](#running-the-project)
-4. [Tailwind CSS Setup](#tailwind-css-setup)
-5. [API Endpoints](#api-endpoints)
-6. [Contributing](#contributing)
-7. [License](#license)
+3. [Tailwind CSS Setup](#tailwind-css-setup)
+4. [Running the Project](#running-the-project)
+
+ 
 
 ---
 
@@ -28,7 +27,7 @@ Before setting up the project, ensure that you have the following installed on y
 - **npm**
 - **PostgreSQL** database
 - **Git** for version control
-- **Postman** or **curl** (optional, for API testing)
+- **Postman**  
 
 ### Install Node.js and npm
 
@@ -39,15 +38,19 @@ If you don’t have Node.js installed, download it from [here](https://nodejs.or
 Follow the installation guide for your operating system on the [official PostgreSQL website](https://www.postgresql.org/download/).
 
 ---
+### Installing React 
+#  `npm install react react-dom`
+#  `npm install --save-dev @types/react @types/react-dom
+`
 
-### Installation
+ 
 
-# Tailwind CSS Installation
- `npm install -D tailwindcss`
- `npx tailwindcss init`
+### Install TailwindCSS
+ # `npm install -D tailwindcss`
+ # `npx tailwindcss init`
 
 
-Follow these steps to install and set up the project on your local machine.
+Follow these steps to start and set up the project on your local machine.
 
 ---
 
@@ -57,4 +60,12 @@ Clone the project repository to your local machine:
 
 ```bash
 git clone https://github.com/Baherbb/H-BaY.git
-cd H-BaY
+\`\`\` cd H-BaY
+\`\`\` cd backend
+\`\`\` npm install
+\`\`\`npm start
+\`\`\` ..cd
+\`\`\` cd fronendend
+\`\`\` npm installnpm start
+ 
+
