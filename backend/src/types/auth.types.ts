@@ -1,8 +1,6 @@
-// types/auth.types.ts
 import { Profile as FacebookProfile } from 'passport-facebook';
 import { Profile as GoogleProfile } from 'passport-google-oauth20';
 
-// Create a custom profile interface instead of extending the conflicting ones
 export interface SocialProfile {
   provider: string;
   id: string;
@@ -21,7 +19,6 @@ export interface SocialProfile {
   _json?: any;
 }
 
-// Add specific type guards
 export function isFacebookProfile(profile: any): profile is FacebookProfile {
   return profile && profile.provider === 'facebook';
 }
@@ -30,7 +27,6 @@ export function isGoogleProfile(profile: any): profile is GoogleProfile {
   return profile && profile.provider === 'google';
 }
 
-// Add specific authentication options types
 export interface FacebookAuthOptions {
   clientID: string;
   clientSecret: string;
