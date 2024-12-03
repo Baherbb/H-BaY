@@ -97,12 +97,10 @@ const SignUp: React.FC = () => {
 
       const data: ApiResponse = await response.json();
 
-      // Store the token in localStorage
       if (data.data?.token && data.data?.user) {
         login(data.data.token, data.data.user, data.data.permissions || []);
         navigate('/');
       }
-      // Redirect to home page or dashboard
       navigate('/');
       
     } catch (err) {
