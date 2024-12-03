@@ -22,7 +22,6 @@ const ProductDetails: React.FC = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
 
-  // Fetch Product Details
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -30,7 +29,6 @@ const ProductDetails: React.FC = () => {
         const data = await productService.getProductById(Number(id));
         setProduct(data);
         
-        // Set default image and variant
         const primaryImage = data.images?.find(img => img.is_primary)?.image_url || data.images?.[0]?.image_url;
         setSelectedImage(primaryImage || "");
         
@@ -46,7 +44,6 @@ const ProductDetails: React.FC = () => {
     fetchProduct();
   }, [id]);
 
-  // Loading and Error States
   if (isLoading) {
     return (
       <motion.div 
@@ -80,11 +77,9 @@ const ProductDetails: React.FC = () => {
     );
   }
 
-  // Derived Data
   const selectedVariantData = product.variants?.find(v => v.id === selectedVariant);
   const price = selectedVariantData ? selectedVariantData.price : product.price;
 
-  // Event Handlers
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
 
