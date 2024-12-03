@@ -88,7 +88,6 @@ passport.use(
   )
 );
 
-/*Modified For Facebook*/
 passport.use(
   new FacebookStrategy(
     {
