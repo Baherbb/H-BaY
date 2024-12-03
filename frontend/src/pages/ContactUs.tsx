@@ -121,7 +121,6 @@ const ContactUs: React.FC = () => {
       setTouched({});
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (error) {
-      // Handle error
     } finally {
       setIsSubmitting(false);
     }
