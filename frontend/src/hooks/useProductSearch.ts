@@ -85,7 +85,6 @@ export const useProductSearch = () => {
         }
       );
 
-      // Ensure the data conforms to the Product interface
       const validatedData: Product[] = response.data.data.map(product => ({
         ...product,
         price: typeof product.price === 'number' && !isNaN(product.price) 
@@ -104,7 +103,6 @@ export const useProductSearch = () => {
 
     } catch (err) {
       if (axios.isCancel(err)) {
-        // Request was cancelled, don't show error
         return [];
       }
 
@@ -129,10 +127,8 @@ export const useProductSearch = () => {
     }
   };
 
-  // Increase debounce time to prevent too many requests
   const debouncedSearch = debounce(searchProducts, 500);
 
-  // Cleanup
   useEffect(() => {
     return () => {
       debouncedSearch.cancel();
