@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, ShoppingCart, Star, Award } from 'lucide-react';
 
-// Custom hook for counting animation
 const useCountAnimation = (end: number, duration: number = 2000, isVisible: boolean) => {
   const [count, setCount] = useState(0);
   const countRef = useRef(count);
@@ -11,7 +10,6 @@ const useCountAnimation = (end: number, duration: number = 2000, isVisible: bool
   useEffect(() => {
     if (!isVisible) return;
 
-    // Reset when end value changes
     countRef.current = 0;
     startTimeRef.current = 0;
     setCount(0);
@@ -153,7 +151,6 @@ const AnimatedStatsSection = () => {
       ref={sectionRef}
       className="bg-orange-500 py-16 text-white relative overflow-hidden"
     >
-      {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -right-1/4 -top-1/4 w-1/2 h-1/2 bg-orange-400/20 rounded-full blur-3xl" />
         <div className="absolute -left-1/4 -bottom-1/4 w-1/2 h-1/2 bg-orange-600/20 rounded-full blur-3xl" />
