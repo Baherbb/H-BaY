@@ -25,7 +25,6 @@ interface ProtectedRouteProps {
       return <Navigate to="/unauthorized" replace />;
     }
 
-    // Add permission check
     if (requiredPermissions.length > 0 && !hasPermission(requiredPermissions)) {
         return <Navigate to="/unauthorized" replace />;
     }
