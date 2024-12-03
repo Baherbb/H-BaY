@@ -26,7 +26,6 @@ import { Slider } from "../ui/Slider";
 import { wishlistService, WishlistItem as WishlistServiceItem, WishlistFilters } from '../../services/wishlist.service';
 import axios from 'axios';
 
-// Types and Interfaces
 interface WishlistProduct {
   id: number;
   name: string;
@@ -159,7 +158,6 @@ const WishlistItem: React.FC<{
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           
-          {/* Priority Badge with enhanced styling */}
           <div className="absolute top-4 left-4 z-10">
             <Select
               value={priority.toString()}
@@ -179,7 +177,6 @@ const WishlistItem: React.FC<{
             </Select>
           </div>
 
-          {/* Enhanced Remove Button */}
           <Button
             variant="ghost"
             size="icon"
@@ -190,7 +187,6 @@ const WishlistItem: React.FC<{
           </Button>
         </div>
 
-        {/* Enhanced Content Section */}
         <div className="md:w-2/3 p-6 flex flex-col justify-between bg-gradient-to-r from-orange-50/50">
           <div className="space-y-4">
             {product.brand && (
@@ -217,7 +213,6 @@ const WishlistItem: React.FC<{
             </div>
           </div>
 
-          {/* Enhanced Action Button */}
           {product.stockStatus !== 'out_of_stock' && (
             <Button 
               onClick={handleMoveToCart}
@@ -382,7 +377,6 @@ const WishList: React.FC<WishListProps> = ({ onClose }) => {
           }
         }));
 
-        // Apply stock status filter client-side
         const filteredItems = stockStatus === 'all' 
           ? formattedItems
           : formattedItems.filter(item => 
@@ -394,7 +388,6 @@ const WishList: React.FC<WishListProps> = ({ onClose }) => {
         setWishlistItems(filteredItems);
         setTotalPages(response.totalPages || 1);
         
-        // Update price range based on actual data
         if (formattedItems.length > 0) {
           const prices = formattedItems.map(item => item.product.price);
           setPriceRange({
