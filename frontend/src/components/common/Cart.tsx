@@ -152,7 +152,6 @@ const Cart: React.FC<CartProps> = ({ onClose }) => {
       console.log('Cart Response:', response);
 
       if (response.success && response.data) {
-        // Transform the data structure if needed
         const transformedData = {
           ...response.data,
           cartItems: response.data.cartItems?.map((item: any) => ({
@@ -163,7 +162,7 @@ const Cart: React.FC<CartProps> = ({ onClose }) => {
                 ...item.variant.product,
                 images: item.variant.product.images?.map((img: any) => ({
                   ...img,
-                  url: img.image_url || img.url // Handle both image_url and url fields
+                  url: img.image_url || img.url 
                 }))
               }
             }
