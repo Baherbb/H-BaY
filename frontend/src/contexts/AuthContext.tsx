@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         return false;
     }
 
-    // For super_admin, always return true
+   
     if (user.user_type === 'super_admin') {
         return true;
     }
@@ -107,14 +107,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 
-// In AuthContext.tsx, modify the login function:
 const login = (newToken: string, userData: User, userPermissions: Permission[] = []) => {
   if (!userData.id || !userData.email || !userData.user_type) {
       console.error("Invalid user data");
       return;
   }
 
-  // Get role-based permissions
   const rolePermissions = RolePermissions[userData.user_type];
 
   setToken(newToken);
@@ -131,10 +129,9 @@ const login = (newToken: string, userData: User, userPermissions: Permission[] =
 
 const logout = async () => {
   try {
-    // Send logout request to the backend
     const response = await fetch(`${process.env.REACT_APP_API_URL}/api/auth/logout`, {
       method: "POST",
-      credentials: "include", // Include cookies for the request
+      credentials: "include",
     });
 
     if (!response.ok) {
