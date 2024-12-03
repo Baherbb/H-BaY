@@ -12,7 +12,7 @@ export interface UserAttributes {
   password?: string;
   user_type: UserType;
   google_id?: string;
-  facebook_id?: string;/*Modified For Facebook*/
+  facebook_id?: string;
   profile_picture?: string;
   reset_password_token?: string | null;
   reset_password_expires?: Date | null;
@@ -78,7 +78,7 @@ User.init(
       allowNull: true,
       unique: true,
     },
-    facebook_id: { /*Modified For Facebook*/
+    facebook_id: { 
       type: DataTypes.STRING(255),
       allowNull: true,
       unique: true,
@@ -109,7 +109,7 @@ User.init(
     tableName: 'users',
     timestamps: true,
     underscored: true,
-    freezeTableName: true, // Preventing any table name modifications
+    freezeTableName: true,
     schema: 'public', 
     hooks: {
       beforeCreate: async (user: User) => {
