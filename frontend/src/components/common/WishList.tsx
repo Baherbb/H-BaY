@@ -558,10 +558,10 @@ const WishList: React.FC<WishListProps> = ({ onClose }) => {
 
         {wishlistItems.length > 0 ? (
           <>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"> {/* Reduced max-width for larger product cards */}
+            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8"> 
   {wishlistItems.length > 0 ? (
     <>
-      <div className="grid grid-cols-1 gap-8"> {/* Changed to single column */}
+      <div className="grid grid-cols-1 gap-8"> 
           {wishlistItems.map((item, index) => (
             <WishlistItem
               key={item.id}
@@ -573,7 +573,6 @@ const WishList: React.FC<WishListProps> = ({ onClose }) => {
             />
           ))}
             </div>
-            {/* Rest of the pagination code remains same */}
           </>
         ) : (
           <EmptyWishlist />
