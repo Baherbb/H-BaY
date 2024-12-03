@@ -228,7 +228,6 @@ export const productService = {
                 ...productData,
                 variants: productData.variants?.map(variant => ({
                     ...variant,
-                    // Keep the id if it exists (for existing variants)
                     id: variant.id
                 })),
                 images: productData.images?.map((image, index) => ({
