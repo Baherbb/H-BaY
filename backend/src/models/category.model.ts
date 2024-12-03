@@ -9,7 +9,6 @@ interface CategoryAttributes {
     description: string | null;
     parent_category_id: number | null;
 }
-//Making The id optional
 interface CategoryCreationAttributes extends Optional<CategoryAttributes, 'id'>{}
 
 class Category extends Model<CategoryAttributes, CategoryCreationAttributes> implements CategoryAttributes {
@@ -49,7 +48,6 @@ Category.init(
             allowNull: true,
             validate: {
                 customUrlValidator(value: string) {
-                    // Allow both regular URLs and data URLs (base64)
                     const urlPattern = /^(https?:\/\/.*|data:image\/.*)/i;
                     if (!urlPattern.test(value)) {
                         throw new Error('Invalid image URL format. Must be a valid HTTP/HTTPS URL or data URL');
