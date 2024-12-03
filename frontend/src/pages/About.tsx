@@ -7,12 +7,10 @@ import FAQSection from '../components/FAQ';
 import AnimatedStats from '../components/AnimatedStats'
 
 const About = () => {
-  // Scroll to top functionality
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Stats data
   const stats = [
     { icon: <ShoppingBag className="w-8 h-8" />, value: '10K+', label: 'Products' },
     { icon: <Users className="w-8 h-8" />, value: '50K+', label: 'Customers' },
@@ -111,7 +109,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* Include other sections */}
       <BrandSection />
       <ShippingSection />
       <FAQSection />
