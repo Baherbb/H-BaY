@@ -156,7 +156,7 @@ const ContactUs: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-gray-50">
-      {/* Hero Section with Enhanced Parallax Effect */}
+      {/* Hero Section */}
       <div className="relative h-[60vh] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 transform -skew-y-6 origin-top-left scale-110" />
         <div className="absolute inset-0 bg-black/40" />
