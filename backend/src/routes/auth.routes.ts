@@ -66,7 +66,6 @@ router.get(
   } as AuthenticateOptions)
 );
 
-// Facebook callback route
 router.get(
   '/facebook/callback',
   (req, res, next) => {
