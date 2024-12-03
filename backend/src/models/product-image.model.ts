@@ -52,7 +52,6 @@ ProductImage.init(
             allowNull: false,
             validate: {
                 customUrlValidator(value: string) {
-                    // Allow both regular URLs and data URLs (base64)
                     const urlPattern = /^(https?:\/\/.*|data:image\/.*)/i;
                     if (!urlPattern.test(value)) {
                         throw new Error('Invalid image URL format. Must be a valid HTTP/HTTPS URL or data URL');
