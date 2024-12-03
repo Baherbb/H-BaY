@@ -24,7 +24,6 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
 
     const { suggestions, loading, error, debouncedSearch } = useProductSearch();
 
-    // Prevent UI jumping
     useEffect(() => {
         if (inputRef.current) {
             setInputHeight(inputRef.current.offsetHeight);
@@ -68,14 +67,12 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
         const value = e.target.value;
         setQuery(value);
         setIsOpen(!!value.trim());
-        // Reset hasResults when input changes
         if (value !== query) {
             setHasResults(false);
         }
     };
 
     const handleSuggestionClick = (suggestion: any) => {
-        // Clear the input and reset states when clicking a suggestion
         setQuery("");
         setIsOpen(false);
         setHasResults(false);
@@ -88,7 +85,6 @@ export const SearchAutocomplete: React.FC<SearchAutocompleteProps> = ({
             if (onSearch) {
                 onSearch(query);
             }
-            // Clear the input and reset states when submitting
             setQuery("");
             setIsOpen(false);
             setHasResults(false);
