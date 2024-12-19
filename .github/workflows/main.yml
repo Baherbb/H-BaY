@@ -8,8 +8,8 @@ on:
 
 env:
   # Configure these based on your project specifics
-  BACKEND_DIRECTORY: ./backend
-  FRONTEND_DIRECTORY: ./frontend
+  BACKEND_DIRECTORY: https://github.com/Baherbb/H-BaY/tree/main/backend
+  FRONTEND_DIRECTORY: https://github.com/Baherbb/H-BaY/tree/main/backend
   NODE_VERSION: '18.x'
   POSTGRES_DB: ecommerce_db
   POSTGRES_USER: postgres
