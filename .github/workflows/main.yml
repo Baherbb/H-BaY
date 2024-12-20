@@ -6,27 +6,33 @@ on:
   pull_request:
     branches: [ "main", "develop" ]
 
-env:
-  BACKEND_DIRECTORY: ./backend
-  FRONTEND_DIRECTORY: ./frontend
-  NODE_VERSION: '18.x'
-  POSTGRES_DB: ecommerce_db
-  POSTGRES_USER: postgres
-
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
+    env:
+      BACKEND_DIRECTORY: ./backend
+      NODE_VERSION: '18.x'
+      DB_NAME: ecommerce
+      DB_USER: postgres
+      DB_HOST: localhost
+      NODE_ENV: development
+      PORT: 3000
+      FRONTEND_URL: http://localhost:3001
+      SESSION_MAX_AGE: 3600000
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+
     services:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ecommerce
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }}"
+          --health-cmd "pg_isready -U postgres -d ecommerce"
           --health-interval 15s
           --health-timeout 10s
           --health-retries 15
@@ -35,61 +41,83 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '18.x'
           cache: 'npm'
-          cache-dependency-path: ${{ env.BACKEND_DIRECTORY }}/package-lock.json
+          cache-dependency-path: ./backend/package-lock.json
 
       - name: Debug PostgreSQL Service
         run: |
           echo "Checking PostgreSQL connection..."
-          pg_isready -h localhost -p 5432 -U ${{ env.POSTGRES_USER }}
+          pg_isready -h localhost -p 5432 -U postgres
 
       - name: Install Backend Dependencies
-        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        working-directory: ./backend
         run: npm ci
 
       - name: Run Backend Linter
-        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        working-directory: ./backend
         run: npm run lint
 
       - name: Run Backend Tests
-        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        working-directory: ./backend
         env:
-          DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@127.0.0.1:5432/${{ env.POSTGRES_DB }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
+          FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
+          SUPER_ADMIN_PASSWORD: ${{ secrets.SUPER_ADMIN_PASSWORD }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          PAYPAL_CLIENT_ID: ${{ secrets.PAYPAL_CLIENT_ID }}
+          PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_CLIENT_SECRET }}
+          DATABASE_URL: postgresql://postgres:${{ secrets.DB_PASSWORD }}@localhost:5432/ecommerce
         run: npm test
 
       - name: Build Backend
-        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        working-directory: ./backend
         run: npm run build
 
   frontend-ci:
     runs-on: ubuntu-latest
+    env:
+      FRONTEND_DIRECTORY: ./frontend
+      NODE_VERSION: '18.x'
+      REACT_APP_API_URL: http://localhost:3000
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ env.NODE_VERSION }}
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '18.x'
           cache: 'npm'
-          cache-dependency-path: ${{ env.FRONTEND_DIRECTORY }}/package-lock.json
+          cache-dependency-path: ./frontend/package-lock.json
 
       - name: Install Frontend Dependencies
-        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        working-directory: ./frontend
         run: npm ci
 
       - name: Run Frontend Linter
-        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        working-directory: ./frontend
         run: npm run lint
 
       - name: Run Frontend Tests
-        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        working-directory: ./frontend
+        env:
+          REACT_APP_API_URL: http://localhost:3000
         run: npm test
 
       - name: Build Frontend
-        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        working-directory: ./frontend
         run: npm run build
