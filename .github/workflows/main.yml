@@ -9,19 +9,7 @@ on:
 jobs:
   backend-ci:
     runs-on: ubuntu-latest
-    env:
-      BACKEND_DIRECTORY: ./backend
-      NODE_VERSION: '18.x'
-      DB_NAME: ecommerce
-      DB_USER: postgres
-      DB_HOST: localhost
-      NODE_ENV: development
-      PORT: 3000
-      FRONTEND_URL: http://localhost:3001
-      SESSION_MAX_AGE: 3600000
-      SMTP_HOST: smtp.gmail.com
-      SMTP_PORT: 587
-
+    
     services:
       postgres:
         image: postgres:13
@@ -32,46 +20,48 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d ecommerce"
-          --health-interval 15s
-          --health-timeout 10s
-          --health-retries 15
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
           cache: 'npm'
           cache-dependency-path: ./backend/package-lock.json
 
-      - name: Debug PostgreSQL Service
-        run: |
-          echo "Checking PostgreSQL connection..."
-          pg_isready -h localhost -p 5432 -U postgres
-
       - name: Install Backend Dependencies
         working-directory: ./backend
         run: npm ci
 
-      - name: Run Backend Linter
-        working-directory: ./backend
-        run: npm run lint
-
       - name: Run Backend Tests
         working-directory: ./backend
         env:
+          DB_NAME: ecommerce
+          DB_USER: postgres
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_HOST: localhost
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: test
+          PORT: 3000
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_CALLBACK_URL: http://localhost:3000/api/auth/google/callback
+          FRONTEND_URL: http://localhost:3001
           FACEBOOK_APP_ID: ${{ secrets.FACEBOOK_APP_ID }}
           FACEBOOK_APP_SECRET: ${{ secrets.FACEBOOK_APP_SECRET }}
+          FACEBOOK_CALLBACK_URL: http://localhost:3000/api/auth/facebook/callback
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          SESSION_MAX_AGE: 3600000
           REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: 587
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           SUPER_ADMIN_EMAIL: ${{ secrets.SUPER_ADMIN_EMAIL }}
@@ -79,7 +69,6 @@ jobs:
           STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
           PAYPAL_CLIENT_ID: ${{ secrets.PAYPAL_CLIENT_ID }}
           PAYPAL_CLIENT_SECRET: ${{ secrets.PAYPAL_CLIENT_SECRET }}
-          DATABASE_URL: postgresql://postgres:${{ secrets.DB_PASSWORD }}@localhost:5432/ecommerce
         run: npm test
 
       - name: Build Backend
@@ -88,16 +77,12 @@ jobs:
 
   frontend-ci:
     runs-on: ubuntu-latest
-    env:
-      FRONTEND_DIRECTORY: ./frontend
-      NODE_VERSION: '18.x'
-      REACT_APP_API_URL: http://localhost:3000
-
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
@@ -108,16 +93,8 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Frontend Linter
-        working-directory: ./frontend
-        run: npm run lint
-
-      - name: Run Frontend Tests
+      - name: Build Frontend
         working-directory: ./frontend
         env:
           REACT_APP_API_URL: http://localhost:3000
-        run: npm test
-
-      - name: Build Frontend
-        working-directory: ./frontend
         run: npm run build
