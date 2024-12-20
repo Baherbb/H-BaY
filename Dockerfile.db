@@ -1,0 +1,9 @@
+FROM postgres:13
+
+# Set environment variables
+ENV POSTGRES_DB=ecommerce
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=iamawriterbbHPharryPotter5378++
+
+# Expose the database port
+EXPOSE 5432
