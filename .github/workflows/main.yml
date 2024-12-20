@@ -27,9 +27,9 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 10
 
     steps:
       - uses: actions/checkout@v4
@@ -99,3 +99,9 @@ jobs:
             pm2 restart backend
           EOF
           ssh -i deploy_key $DEPLOY_USER@$DEPLOY_HOST << EOF
+            cd /path/to/frontend
+            git pull origin main
+            npm ci
+            npm run build
+            pm2 restart frontend
+          EOF
