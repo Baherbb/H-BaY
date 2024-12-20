@@ -1,0 +1,126 @@
+name: H-BaY
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+env:
+  BACKEND_DIRECTORY: ./backend
+  FRONTEND_DIRECTORY: ./frontend
+  NODE_VERSION: '18.x'
+  POSTGRES_DB: ecommerce_db
+  POSTGRES_USER: postgres
+
+jobs:
+  backend-ci:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ${{ env.POSTGRES_USER }} -d ${{ env.POSTGRES_DB }}"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.BACKEND_DIRECTORY }}/package-lock.json
+
+      - name: Debug PostgreSQL Service
+        run: |
+          echo "Checking PostgreSQL connection..."
+          pg_isready -h localhost -p 5432 -U ${{ env.POSTGRES_USER }}
+
+      - name: Install Backend Dependencies
+        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        run: npm ci
+
+      - name: Run Backend Linter
+        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        run: npm run lint
+
+      - name: Run Backend Tests
+        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        env:
+          DATABASE_URL: postgresql://${{ env.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@127.0.0.1:5432/${{ env.POSTGRES_DB }}
+        run: npm test
+
+      - name: Build Backend
+        working-directory: ${{ env.BACKEND_DIRECTORY }}
+        run: npm run build
+
+  frontend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.FRONTEND_DIRECTORY }}/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        run: npm ci
+
+      - name: Run Frontend Linter
+        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        run: npm run lint
+
+      - name: Run Frontend Tests
+        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        run: npm test
+
+      - name: Build Frontend
+        working-directory: ${{ env.FRONTEND_DIRECTORY }}
+        run: npm run build
+
+  deploy:
+    needs: [backend-ci, frontend-ci]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          echo "$DEPLOY_SSH_KEY" > deploy_key
+          chmod 600 deploy_key
+          ssh -i deploy_key $DEPLOY_USER@$DEPLOY_HOST << EOF
+            cd /path/to/backend
+            git pull origin main
+            npm ci
+            npm run migrate
+            pm2 restart backend
+          EOF
+          ssh -i deploy_key $DEPLOY_USER@$DEPLOY_HOST << EOF
+            cd /path/to/frontend
+            git pull origin main
+            npm ci
+            npm run build
+            pm2 restart frontend
+          EOF
