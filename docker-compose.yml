@@ -6,20 +6,43 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3001:80"
+      - "3001:80"  # Expose frontend on port 3001
     networks:
       - app-network
+    environment:
+      - REACT_APP_API_URL=http://backend:3000
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:3000"  # Expose backend on port 3000
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:iamawriterbbHPharryPotter5378++@db:5432/ecommerce
+    networks:
+      - app-network
+    depends_on:
+      - db  # Ensure the database starts before the backend
+
+  db:
+    build:
+      context: .  # Use the Dockerfile.db in the current directory
+      dockerfile: Dockerfile.db
+    ports:
+      - "5433:5432"  # Expose database on port 5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: iamawriterbbHPharryPotter5378++
+      POSTGRES_DB: ecommerce
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
 
 networks:
   app-network:
+
+volumes:
+  postgres_data:
