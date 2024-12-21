@@ -35,20 +35,9 @@ jobs:
           done
           echo "Database is ready!"
 
-  load-database:
-    runs-on: ubuntu-latest
-    needs: database-setup
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Load Initial Database Data
-        run: |
-          psql -h 127.0.0.1 -U postgres -d ecommerce -c "CREATE TABLE IF NOT EXISTS example (id SERIAL PRIMARY KEY, name TEXT);"
-          echo "Database seeded successfully!"
-
   backend-install:
     runs-on: ubuntu-latest
-    needs: load-database
+    needs: database-setup
     defaults:
       run:
         working-directory: ./backend
