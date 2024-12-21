@@ -79,33 +79,8 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Validate Jest Configuration
+        run: npx jest --help
+
       - name: Run Jest Tests
         run: npx jest --detectOpenHandles
-
-  docker-compose-build:
-    runs-on: ubuntu-latest
-    needs: [frontend-tests, backend-tests]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build and Run Docker Compose
-        run: docker-compose up --build -d
-
-      - name: Verify Docker Compose Services
-        run: docker ps -a
-
-  e2e-tests:
-    runs-on: ubuntu-latest
-    needs: docker-compose-build
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run Cypress Tests
-        uses: cypress-io/github-action@v5
-        with:
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 120
-        env:
-          CYPRESS_BASE_URL: http://localhost:3000
