@@ -1,53 +1,99 @@
-name: ci
+name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
   frontend-unit-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Install frontend modules
-      run: npm run install:frontend
-    - name: Run frontend unit tests 🧪
-      run: npm run test:frontend:unit
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+      
+      - name: Run Frontend Tests
+        run: npm test
+
   api-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install Backend modules
-        uses: cypress-io/github-action@v5
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          install-command: npm run install:backend
-          runTests: false
-      - name: Install Frontend modules
-        uses: cypress-io/github-action@v5
-        with:
-          install-command: npm run install:frontend
-          runTests: false
-      - name: Run API tests 🧪
-        uses: cypress-io/github-action@v5
-        with:
-          start: npm run start:frontend, npm run start:server
-          command: npm run test:api
-  frontend-tests:
-    needs: frontend-unit-tests
+          node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
+
+      - name: Install Backend Dependencies
+        run: npm ci
+
+      - name: Build Backend
+        run: npm run build
+
+      - name: Run Backend Tests
+        run: npm test
+
+  e2e-tests:
     runs-on: ubuntu-latest
+    needs: [frontend-unit-tests, api-tests]
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install Frontend modules
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Build Backend
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Start Backend Server
+        working-directory: ./backend
+        run: npm start &
+        env:
+          NODE_ENV: test
+
+      - name: Start Frontend Server
+        working-directory: ./frontend
+        run: npm start &
+        env:
+          REACT_APP_API_URL: http://localhost:3000
+
+      - name: Run Cypress Tests
         uses: cypress-io/github-action@v5
         with:
-          install-command: npm run install:frontend
-          runTests: false
-      - name: Run Frontend UI tests 🧪
-        uses: cypress-io/github-action@v5
-        with:
-          start: npm run start:frontend
-          command: npm run test:frontend
+          working-directory: ./frontend
+          start: npm start
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 120
