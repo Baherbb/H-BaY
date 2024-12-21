@@ -7,7 +7,7 @@
     "dev": "nodemon src/index.ts",
     "build": "tsc",
     "test": "jest",
-    "install:backend": "npm install"  // Add this line
+    "install:backend": "cd backend && npm install"
   },
   "keywords": [],
   "author": "",
