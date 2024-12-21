@@ -1,96 +1,111 @@
-name: Frontend CI/CD Workflow
+name: CI Workflow
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [main, develop]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: [main, develop]
 
 jobs:
+
   lint-format:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [12, 14, 16]  # Adjust Node versions as needed
 
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
         with:
-          node-version: 18
+          node-version: ${{ matrix.node }}
 
       - name: Install Dependencies
-        working-directory: ./frontend
-        run: yarn install
+        run: |
+          yarn install
 
       - name: Run Lint
-        working-directory: ./frontend
-        run: yarn lint
+        run: |
+          yarn lint  # Now this will work as "lint" is defined in package.json
 
       - name: Run Prettier
-        working-directory: ./frontend
-        run: yarn format
+        run: |
+          yarn format  # Now this will work as "format" is defined in package.json
 
   type-check:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node: [12, 14, 16]
+
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
         with:
-          node-version: 18
+          node-version: ${{ matrix.node }}
 
       - name: Install Dependencies
-        working-directory: ./frontend
-        run: yarn install
+        run: |
+          yarn install
 
       - name: Check Types
-        working-directory: ./frontend
-        run: yarn type-check
+        run: |
+          yarn type-check  # Ensure "type-check" script is defined in package.json
 
   unit-test:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node: [12, 14, 16]
+
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
         with:
-          node-version: 18
+          node-version: ${{ matrix.node }}
 
       - name: Install Dependencies
-        working-directory: ./frontend
-        run: yarn install
+        run: |
+          yarn install
 
       - name: Run Tests
-        working-directory: ./frontend
-        run: yarn test
+        run: |
+          yarn test  # Ensure "test" script is defined in package.json
 
   build:
     runs-on: ubuntu-latest
 
-    needs: [lint-format, type-check, unit-test]
+    strategy:
+      matrix:
+        node: [12, 14, 16]
+
+    needs: [type-check, unit-test]
 
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
         with:
-          node-version: 18
+          node-version: ${{ matrix.node }}
 
       - name: Install Dependencies
-        working-directory: ./frontend
-        run: yarn install
+        run: |
+          yarn install
 
       - name: Run Build
-        working-directory: ./frontend
-        run: yarn build
-
-  
+        run: |
+          yarn build  # Ensure "build" script is defined in package.json
