@@ -3,19 +3,17 @@ import type { Config } from 'jest';
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'], // Ensure jest.setup.ts exists in the root directory
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy', // Mock CSS imports
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   testMatch: [
-    '<rootDir>/**/__tests__/**/*.[jt]s?(x)', // Corrected path for test folders
-    '<rootDir>/**/*.(spec|test).[tj]s?(x)', // Matches test files anywhere in the project
+    '*/_tests_//.[jt]s?(x)',
+    '*/?(.)+(spec|test).[tj]s?(x)',
   ],
   transform: {
-    '^.+\\.(ts|tsx)$': 'ts-jest', // Use ts-jest for TypeScript files
+    '^.+\\.(ts|tsx)$': 'ts-jest',
   },
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'], // Ensures compatibility with common file extensions
-  rootDir: './', // Ensures Jest can resolve paths relative to the project root
 };
 
 export default config;
