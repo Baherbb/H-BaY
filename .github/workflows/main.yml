@@ -1,5 +1,4 @@
 name: Frontend Tests
-
 on:
   push:
     branches:
@@ -12,26 +11,29 @@ jobs:
   test:
     name: Run Jest Tests
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # Specify your Node.js version
-
+          node-version: '18'
+          cache: 'npm'
+      
       - name: Install Dependencies
-        run: npm install
-
+        run: |
+          npm install
+          npm install -D ts-node typescript @types/jest jest ts-jest
+      
       - name: Verify Jest Config Path
-        run: ls -al ./frontend/jest.config.ts # Adjust the path to your jest.config.ts
-
+        run: ls -al ./frontend/jest.config.ts
+      
       - name: Run Jest Tests
-        run: npx jest --config ./frontend/jest.config.ts # Adjust the path if needed
-
-      - name: Upload Jest Coverage Report (Optional)
+        run: npx jest --config ./frontend/jest.config.ts
+      
+      - name: Upload Jest Coverage Report
         if: success() || failure()
         uses: actions/upload-artifact@v3
         with:
