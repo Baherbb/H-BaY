@@ -35,7 +35,7 @@ jobs:
           done
           echo "Database is ready!"
 
-  backend-tests:
+  backend-install:
     runs-on: ubuntu-latest
     needs: database-setup
     defaults:
@@ -50,20 +50,12 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Install Dependencies
+      - name: Install Backend Dependencies
         run: npm ci
 
-      - name: Set Environment Variables
-        run: echo "DATABASE_URL=postgresql://postgres:iamawriterbbHPharryPotter5378++@localhost:5432/ecommerce" >> $GITHUB_ENV
-
-      - name: Build and Test Backend
-        run: |
-          npm run build
-          npm test -- --passWithNoTests
-
-  frontend-tests:
+  frontend-install:
     runs-on: ubuntu-latest
-    needs: backend-tests
+    needs: backend-install
     defaults:
       run:
         working-directory: ./frontend
@@ -76,11 +68,77 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Install Dependencies
+      - name: Install Frontend Dependencies
         run: npm ci
+
+  backend-tests:
+    runs-on: ubuntu-latest
+    needs: backend-install
+    defaults:
+      run:
+        working-directory: ./backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Set Environment Variables
+        run: echo "DATABASE_URL=postgresql://postgres:iamawriterbbHPharryPotter5378++@localhost:5432/ecommerce" >> $GITHUB_ENV
+
+      - name: Build and Test Backend
+        run: |
+          npm run build
+          npm test -- --passWithNoTests
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    needs: frontend-install
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
 
       - name: Validate Jest Configuration
         run: npx jest --help
 
       - name: Run Jest Tests
         run: npx jest --detectOpenHandles
+
+  docker-compose-build:
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and Run Docker Compose
+        run: docker-compose up --build -d
+
+      - name: Verify Docker Compose Services
+        run: docker ps -a
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: docker-compose-build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Cypress Tests
+        uses: cypress-io/github-action@v5
+        with:
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 120
+        env:
+          CYPRESS_BASE_URL: http://localhost:3000
