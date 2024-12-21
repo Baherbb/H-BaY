@@ -48,11 +48,10 @@ jobs:
       - name: Install Backend Dependencies
         run: npm ci
 
-      - name: Build Backend
-        run: npm run build
-
-      - name: Run Backend Tests
-        run: npm test
+      - name: Build and Run Backend Tests
+        run: |
+          npm run build
+          npm test
 
   e2e-tests:
     runs-on: ubuntu-latest
@@ -66,34 +65,27 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: Install Frontend Dependencies
-        working-directory: ./frontend
-        run: npm ci
-
-      - name: Install Backend Dependencies
-        working-directory: ./backend
-        run: npm ci
+      - name: Install Dependencies
+        run: |
+          cd frontend && npm ci
+          cd ../backend && npm ci
 
       - name: Build Backend
-        working-directory: ./backend
         run: npm run build
-
-      - name: Start Backend Server
         working-directory: ./backend
-        run: npm start &
+
+      - name: Start Servers
+        run: |
+          npm start &  # Start Backend
+          cd ../frontend && npm start &  # Start Frontend
         env:
           NODE_ENV: test
-
-      - name: Start Frontend Server
-        working-directory: ./frontend
-        run: npm start &
-        env:
           REACT_APP_API_URL: http://localhost:3000
 
       - name: Run Cypress Tests
         uses: cypress-io/github-action@v5
         with:
-          working-directory: ./frontend
           start: npm start
           wait-on: 'http://localhost:3000'
           wait-on-timeout: 120
+          working-directory: ./frontend
