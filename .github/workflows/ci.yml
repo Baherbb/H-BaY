@@ -1,36 +1,71 @@
-name: CI Workflow
+name: Frontend Build
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
 
 jobs:
-  frontend:
+  install:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Specify your Node.js version
+          node-version: '18'
 
-      - name: Install Dependencies
-        run: |
-          yarn install
+      - name: Install dependencies
+        run: npm install
 
-      - name: Run Lint
-        run: |
-          yarn lint  # Ensure lint script is defined in package.json
+  build:
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Run Tests
-        run: |
-          yarn test  # Ensure test script is defined in package.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-      - name: Build Application
+      - name: Build the project
+        run: npm run build
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Run tests
+        run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Deploy to Production
         run: |
-          yarn build  # Ensure build script is defined in package.json
+          echo "Deploying to production..."
+          # Add your deploy command here, such as `npm run deploy` or using a cloud deployment action
