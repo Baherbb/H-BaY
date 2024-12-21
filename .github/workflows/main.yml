@@ -10,7 +10,7 @@ on:
 
 jobs:
   test:
-    name: Run Frontend Tests
+    name: Run Jest Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +25,11 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: Run Tests
-        run: npx jest --config jest.config.ts
+      - name: Verify Jest Config Path
+        run: ls -al ./frontend/jest.config.ts # Adjust the path to your jest.config.ts
+
+      - name: Run Jest Tests
+        run: npx jest --config ./frontend/jest.config.ts # Adjust the path if needed
 
       - name: Upload Jest Coverage Report (Optional)
         if: success() || failure()
