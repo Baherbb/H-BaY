@@ -41,6 +41,7 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -92,9 +93,11 @@ jobs:
 
   e2e-tests:
     runs-on: ubuntu-latest
-    needs:
-      - frontend-tests
-      - backend-tests
+    needs: [frontend-tests, backend-tests]
+    defaults:
+      run:
+        working-directory: ./frontend
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
