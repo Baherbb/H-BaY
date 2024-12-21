@@ -1,4 +1,4 @@
-name: H-BaY Frontend Build
+name: H-BaY Frontend CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  frontend-build:
+  frontend-ci:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,19 +25,41 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      - name: Create ESLint Config
+        working-directory: ./frontend
+        run: |
+          cat > .eslintrc.json << EOF
+          {
+            "extends": [
+              "react-app",
+              "react-app/jest"
+            ],
+            "rules": {
+              "@typescript-eslint/no-unused-vars": ["warn", {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_",
+                "ignoreRestSiblings": true
+              }],
+              "jsx-a11y/iframe-has-title": "warn",
+              "jsx-a11y/anchor-is-valid": "warn",
+              "jsx-a11y/heading-has-content": "warn",
+              "react-hooks/exhaustive-deps": "warn"
+            }
+          }
+          EOF
+
+      - name: Run Frontend Linter
+        working-directory: ./frontend
+        run: npm run lint -- --max-warnings 0
+
+      - name: Run Frontend Tests
+        working-directory: ./frontend
+        env:
+          REACT_APP_API_URL: http://localhost:3000
+        run: npm test
+
       - name: Build Frontend
         working-directory: ./frontend
         env:
           REACT_APP_API_URL: http://localhost:3000
         run: npm run build
-
-      - name: Archive Frontend Build
-        if: success()
-        working-directory: ./frontend
-        run: tar -czf build-artifact.tar.gz build
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: frontend-build
-          path: ./frontend/build-artifact.tar.gz
