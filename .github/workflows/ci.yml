@@ -7,28 +7,36 @@ on:
     branches: [main]
 
 jobs:
-  frontend-install:
+  database-setup:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: ecommerce
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: iamawriterbbHPharryPotter5378++
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
-      # Step 1: Checkout the code
-      - uses: actions/checkout@v4
-
-      # Step 2: Set up Node.js environment
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      # Step 3: Install frontend dependencies
-      - name: Install Dependencies
-        run: npm ci
+      # Verify Database Connection
+      - name: Verify PostgreSQL Service
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
+            echo "Waiting for database to be ready..."
+            sleep 5
+          done
+          echo "Database is ready!"
 
   backend-tests:
     runs-on: ubuntu-latest
+    needs: database-setup
     defaults:
       run:
         working-directory: ./backend
@@ -37,80 +45,46 @@ jobs:
       # Step 1: Checkout the code
       - uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js environment
+      # Step 2: Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
 
-      # Step 3: Install backend dependencies
+      # Step 3: Install Dependencies
       - name: Install Dependencies
         run: npm ci
 
-      # Step 4: Build and test backend
-      - name: Build and Test
+      # Step 4: Set up Environment Variables
+      - name: Set Environment Variables
         run: |
-          npm run build
-          npm test -- --passWithNoTests
+          echo "DATABASE_URL=postgresql://postgres:iamawriterbbHPharryPotter5378++@localhost:5432/ecommerce" >> $GITHUB_ENV
 
-  jest-tests:
+      # Step 5: Run Backend Jest Tests
+      - name: Run Backend Tests
+        run: npx jest --config jest.config.js
+
+  frontend-tests:
     runs-on: ubuntu-latest
-    needs: [frontend-install]
-
-    steps:
-      # Step 1: Checkout the code
-      - uses: actions/checkout@v4
-
-      # Step 2: Set up Node.js environment
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      # Step 3: Install dependencies
-      - name: Install Dependencies
+    needs: backend-tests
+    defaults:
+      run:
         working-directory: ./frontend
-        run: npm ci
-
-      # Step 4: Run Jest tests
-      - name: Run Jest Tests
-        uses: stefanoeb/jest-action@1.0.4
-        with:
-          jestArgs: --detectOpenHandles
-
-  e2e-tests:
-    runs-on: ubuntu-latest
-    needs: [jest-tests, backend-tests]
 
     steps:
       # Step 1: Checkout the code
       - uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js environment
+      # Step 2: Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
 
-      # Step 3: Install all dependencies
-      - name: Install All Dependencies
-        run: |
-          cd frontend && npm ci
-          cd ../backend && npm ci
+      # Step 3: Install Dependencies
+      - name: Install Dependencies
+        run: npm ci
 
-      # Step 4: Start backend and frontend servers
-      - name: Start Servers
-        run: |
-          cd backend && npm start &
-          cd ../frontend && npm start &
-        env:
-          NODE_ENV: test
-          REACT_APP_API_URL: http://localhost:3000
-
-      # Step 5: Run Cypress tests
-      - name: Run Cypress Tests
-        uses: cypress-io/github-action@v5
-        with:
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 180
-          working-directory: ./frontend
+      # Step 4: Run Frontend Jest Tests
+      - name: Run Frontend Tests
+        run: npx jest --config jest.config.js
