@@ -1,0 +1,36 @@
+name: CI Workflow
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '16'  # Specify your Node.js version
+
+      - name: Install Dependencies
+        run: |
+          yarn install
+
+      - name: Run Lint
+        run: |
+          yarn lint  # Ensure lint script is defined in package.json
+
+      - name: Run Tests
+        run: |
+          yarn test  # Ensure test script is defined in package.json
+
+      - name: Build Application
+        run: |
+          yarn build  # Ensure build script is defined in package.json
