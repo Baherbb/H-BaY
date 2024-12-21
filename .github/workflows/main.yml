@@ -1,4 +1,4 @@
-name: H-BaY Frontend CI
+name: Frontend CI/CD Workflow
 
 on:
   push:
@@ -7,59 +7,90 @@ on:
     branches: [ "main", "develop" ]
 
 jobs:
-  frontend-ci:
+  lint-format:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout Commit
+        uses: actions/checkout@v2
 
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
         with:
-          node-version: '18.x'
-          cache: 'npm'
-          cache-dependency-path: ./frontend/package-lock.json
+          node-version: 18
 
-      - name: Install Frontend Dependencies
+      - name: Install Dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: yarn install
 
-      - name: Create ESLint Config
+      - name: Run Lint
         working-directory: ./frontend
-        run: |
-          cat > .eslintrc.json << EOF
-          {
-            "extends": [
-              "react-app",
-              "react-app/jest"
-            ],
-            "rules": {
-              "@typescript-eslint/no-unused-vars": ["warn", {
-                "argsIgnorePattern": "^_",
-                "varsIgnorePattern": "^_",
-                "ignoreRestSiblings": true
-              }],
-              "jsx-a11y/iframe-has-title": "warn",
-              "jsx-a11y/anchor-is-valid": "warn",
-              "jsx-a11y/heading-has-content": "warn",
-              "react-hooks/exhaustive-deps": "warn"
-            }
-          }
-          EOF
+        run: yarn lint
 
-      - name: Run Frontend Linter
+      - name: Run Prettier
         working-directory: ./frontend
-        run: npm run lint -- --max-warnings 0
+        run: yarn format
 
-      - name: Run Frontend Tests
-        working-directory: ./frontend
-        env:
-          REACT_APP_API_URL: http://localhost:3000
-        run: npm test
+  type-check:
+    runs-on: ubuntu-latest
 
-      - name: Build Frontend
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
         working-directory: ./frontend
-        env:
-          REACT_APP_API_URL: http://localhost:3000
-        run: npm run build
+        run: yarn install
+
+      - name: Check Types
+        working-directory: ./frontend
+        run: yarn type-check
+
+  unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: yarn install
+
+      - name: Run Tests
+        working-directory: ./frontend
+        run: yarn test
+
+  build:
+    runs-on: ubuntu-latest
+
+    needs: [lint-format, type-check, unit-test]
+
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        working-directory: ./frontend
+        run: yarn install
+
+      - name: Run Build
+        working-directory: ./frontend
+        run: yarn build
+
+  
