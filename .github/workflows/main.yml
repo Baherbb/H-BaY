@@ -35,9 +35,20 @@ jobs:
           done
           echo "Database is ready!"
 
-  backend-install:
+  load-database:
     runs-on: ubuntu-latest
     needs: database-setup
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Load Initial Database Data
+        run: |
+          psql -h 127.0.0.1 -U postgres -d ecommerce -c "CREATE TABLE IF NOT EXISTS example (id SERIAL PRIMARY KEY, name TEXT);"
+          echo "Database seeded successfully!"
+
+  backend-install:
+    runs-on: ubuntu-latest
+    needs: load-database
     defaults:
       run:
         working-directory: ./backend
@@ -78,3 +89,81 @@ jobs:
         run: |
           npm run build
           npm test
+
+  frontend-install:
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    needs: frontend-install
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Frontend Tests
+        run: npx jest --config jest.config.js
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: [frontend-tests, backend-tests]
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Install Backend Dependencies
+        run: npm ci
+        working-directory: ./backend
+
+      - name: Build Backend
+        run: npm run build
+        working-directory: ./backend
+
+      - name: Start Backend Server
+        run: npm start &
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgres://postgres:iamawriterbbHPharryPotter5378++@localhost:5432/ecommerce
+
+      - name: Start Frontend Server
+        run: npm start &
+        working-directory: ./frontend
+        env:
+          REACT_APP_API_URL: http://localhost:3000
+
+      - name: Run Cypress Tests
+        uses: cypress-io/github-action@v5
+        with:
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 120
+          working-directory: ./frontend
