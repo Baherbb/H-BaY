@@ -53,27 +53,9 @@ jobs:
       - name: Install Backend Dependencies
         run: npm ci
 
-  frontend-install:
-    runs-on: ubuntu-latest
-    needs: backend-install
-    defaults:
-      run:
-        working-directory: ./frontend
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18.x'
-
-      - name: Install Frontend Dependencies
-        run: npm ci
-
   backend-tests:
     runs-on: ubuntu-latest
-    needs: database-setup
+    needs: backend-install
     defaults:
       run:
         working-directory: ./backend
@@ -89,10 +71,31 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Build and Test
+      - name: Validate Jest Configuration
+        run: npx jest --help
+
+      - name: Build and Test Backend
         run: |
           npm run build
           npm test -- --passWithNoTests
+
+  frontend-install:
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Frontend Dependencies
+        run: npm ci
 
   frontend-tests:
     runs-on: ubuntu-latest
