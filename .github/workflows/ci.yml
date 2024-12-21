@@ -23,9 +23,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
-
     steps:
-      # Verify Database Connection
       - name: Verify PostgreSQL Service
         run: |
           until pg_isready -h 127.0.0.1 -p 5432 -U postgres; do
@@ -40,7 +38,6 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-
     steps:
       - uses: actions/checkout@v4
       
@@ -48,6 +45,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: './backend/package-lock.json'
 
       - name: Install Dependencies
         run: npm ci
@@ -59,32 +58,31 @@ jobs:
 
   frontend-tests:
     runs-on: ubuntu-latest
-    needs: backend-tests
     defaults:
       run:
         working-directory: ./frontend
-
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
 
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run Frontend Tests
-        run: npx jest --config jest.config.js
+      - name: Run Jest Tests
+        run: npx jest --detectOpenHandles
 
   e2e-tests:
     runs-on: ubuntu-latest
     needs: [frontend-tests, backend-tests]
     defaults:
       run:
-        working-directory: ./frontend  # Adjust as needed for where you run E2E tests
-
+        working-directory: ./frontend
     steps:
       - uses: actions/checkout@v4
 
@@ -92,22 +90,31 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18.x'
+          cache: 'npm'
 
-      - name: Install Dependencies
-        run: |
-          cd frontend && npm ci
-          cd ../backend && npm ci
+      - name: Install Frontend Dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Install Backend Dependencies
+        run: npm ci
+        working-directory: ./backend
 
       - name: Build Backend
         run: npm run build
         working-directory: ./backend
 
-      - name: Start Servers
-        run: |
-          npm start &  # Start Backend
-          cd ../frontend && npm start &  # Start Frontend
+      - name: Start Backend Server
+        run: npm start &
+        working-directory: ./backend
         env:
           NODE_ENV: test
+          DATABASE_URL: postgres://postgres:iamawriterbbHPharryPotter5378++@localhost:5432/ecommerce
+
+      - name: Start Frontend Server
+        run: npm start &
+        working-directory: ./frontend
+        env:
           REACT_APP_API_URL: http://localhost:3000
 
       - name: Run Cypress Tests
