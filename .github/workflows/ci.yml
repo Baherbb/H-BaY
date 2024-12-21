@@ -1,42 +1,53 @@
-name: Frontend CI
+name: ci
 
 on:
   push:
     branches:
       - main
   pull_request:
-    branches:
-      - main
 
 jobs:
-  install:
+  frontend-unit-tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci
-
-  test:
+    - uses: actions/checkout@v3
+    - name: Install frontend modules
+      run: npm run install:frontend
+    - name: Run frontend unit tests 🧪
+      run: npm run test:frontend:unit
+  api-tests:
     runs-on: ubuntu-latest
-    needs: install
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Backend modules
+        uses: cypress-io/github-action@v5
         with:
-          node-version: '18'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test  # Ensure you have a test script defined in package.json
+          install-command: npm run install:backend
+          runTests: false
+      - name: Install Frontend modules
+        uses: cypress-io/github-action@v5
+        with:
+          install-command: npm run install:frontend
+          runTests: false
+      - name: Run API tests 🧪
+        uses: cypress-io/github-action@v5
+        with:
+          start: npm run start:frontend, npm run start:server
+          command: npm run test:api
+  frontend-tests:
+    needs: frontend-unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Frontend modules
+        uses: cypress-io/github-action@v5
+        with:
+          install-command: npm run install:frontend
+          runTests: false
+      - name: Run Frontend UI tests 🧪
+        uses: cypress-io/github-action@v5
+        with:
+          start: npm run start:frontend
+          command: npm run test:frontend
