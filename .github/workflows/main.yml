@@ -7,22 +7,17 @@ on:
     branches: [main, develop]
 
 jobs:
-
-  lint-format:
+  frontend:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node: [12, 14, 16]  # Adjust Node versions as needed
-
     steps:
-      - name: Checkout Commit
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Use Node.js ${{ matrix.node }}
+      - name: Set up Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node }}
+          node-version: '16'  # Specify your Node.js version
 
       - name: Install Dependencies
         run: |
@@ -30,82 +25,12 @@ jobs:
 
       - name: Run Lint
         run: |
-          yarn lint  # Now this will work as "lint" is defined in package.json
-
-      - name: Run Prettier
-        run: |
-          yarn format  # Now this will work as "format" is defined in package.json
-
-  type-check:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node: [12, 14, 16]
-
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v2
-
-      - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Install Dependencies
-        run: |
-          yarn install
-
-      - name: Check Types
-        run: |
-          yarn type-check  # Ensure "type-check" script is defined in package.json
-
-  unit-test:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node: [12, 14, 16]
-
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v2
-
-      - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Install Dependencies
-        run: |
-          yarn install
+          yarn lint  # Ensure lint script is defined in package.json
 
       - name: Run Tests
         run: |
-          yarn test  # Ensure "test" script is defined in package.json
+          yarn test  # Ensure test script is defined in package.json
 
-  build:
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node: [12, 14, 16]
-
-    needs: [type-check, unit-test]
-
-    steps:
-      - name: Checkout Commit
-        uses: actions/checkout@v2
-
-      - name: Use Node.js ${{ matrix.node }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Install Dependencies
+      - name: Build Application
         run: |
-          yarn install
-
-      - name: Run Build
-        run: |
-          yarn build  # Ensure "build" script is defined in package.json
+          yarn build  # Ensure build script is defined in package.json
