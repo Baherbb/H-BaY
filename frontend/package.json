@@ -42,9 +42,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "lint": "eslint .",  // Added lint script
-    "format": "prettier --write ."  // Added format script
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -68,8 +66,6 @@
     "@types/lodash": "^4.17.13",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.13",
-    "eslint": "^8.0.0",  // Ensure ESLint is installed
-    "prettier": "^2.0.0"  // Ensure Prettier is installed
+    "tailwindcss": "^3.4.13"
   }
 }
