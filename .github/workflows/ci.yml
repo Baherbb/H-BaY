@@ -22,24 +22,3 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-
-  build:
-    runs-on: ubuntu-latest
-    needs: install
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Build the project
-        run: npm run build
-
-  
-      - name: Deploy to Production
-        run: |
-          echo "Deploying to production..."
-          # Add your deploy command here, such as `npm run deploy` or using a cloud deployment action
