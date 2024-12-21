@@ -1,48 +1,40 @@
-version: '3.8'
+name: CI
 
-services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3001:80"  # Expose frontend on port 3001
-    networks:
-      - app-network
-    environment:
-      - REACT_APP_API_URL=http://backend:3000
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"  # Expose backend on port 3000
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:iamawriterbbHPharryPotter5378++@db:5432/ecommerce
-    networks:
-      - app-network
-    depends_on:
-      - db  # Ensure the database starts before the backend
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
 
-  db:
-    build:
-      context: .  # Use the Dockerfile.db in the current directory
-      dockerfile: Dockerfile.db
-    ports:
-      - "5433:5432"  # Expose database on port 5432
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: iamawriterbbHPharryPotter5378++
-      POSTGRES_DB: ecommerce
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-networks:
-  app-network:
+      # Step 2: Set up Docker Compose
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v2
 
-volumes:
-  postgres_data:
+      # Step 3: Build and Start Services
+      - name: Build and Start Services
+        run: docker-compose up --build -d
+
+      # Step 4: Run Backend Tests
+      - name: Run Backend Tests
+        run: docker-compose exec backend npm test
+
+      # Step 5: Run Frontend Tests
+      - name: Run Frontend Tests
+        run: docker-compose exec frontend npm test -- --passWithNoTests
+
+      # Step 6: Run Cypress Tests
+      - name: Run Cypress Tests
+        run: docker-compose exec frontend npm run cypress:run
+
+      # Step 7: Tear Down Services
+      - name: Tear Down
+        run: docker-compose down
