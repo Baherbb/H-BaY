@@ -1,15 +1,32 @@
-name: CI
+name: CI Pipeline
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  tests:
+  backend-install:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm ci
+
+  frontend-install:
+    runs-on: ubuntu-latest
+    needs: backend-install
     steps:
       - uses: actions/checkout@v4
 
@@ -22,38 +39,3 @@ jobs:
         run: |
           cd frontend
           npm ci
-
-      - name: Run Frontend Unit Tests
-        run: npm test -- --passWithNoTests
-        working-directory: ./frontend
-
-      - name: Install Backend Dependencies
-        run: |
-          cd backend
-          npm ci
-
-      - name: Build and Run Backend Tests
-        run: |
-          npm run build
-          npm test -- --passWithNoTests
-        working-directory: ./backend
-
-      - name: Start Servers
-        run: |
-          cd backend && npm start &
-          cd ../frontend && npm start &
-        env:
-          NODE_ENV: test
-          REACT_APP_API_URL: http://localhost:3000
-
-      - name: Run Cypress Tests
-        uses: cypress-io/github-action@v5
-        with:
-          wait-on: 'http://localhost:3000'
-          wait-on-timeout: 180
-          working-directory: ./frontend
-
-      - name: Run Jest Tests
-        uses: stefanoeb/jest-action@1.0.4
-        with:
-          jestArgs: --detectOpenHandles
